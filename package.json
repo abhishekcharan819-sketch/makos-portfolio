@@ -1,7 +1,6 @@
 {
   "name": "makos-portfolio",
   "version": "1.0.0",
-  "description": "MakOS — macOS-inspired Creative Portfolio",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
@@ -14,7 +13,5 @@
   "devDependencies": {
     "nodemon": "^3.0.1"
   },
-  "engines": {
-    "node": ">=18.x"
-  }
+  "engines": { "node": ">=18.x" }
 }

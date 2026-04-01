@@ -1,84 +1,82 @@
-// MakOS — Client JS
+// MakOS — Main JS
 
 document.addEventListener('DOMContentLoaded', () => {
 
-  // Window entrance animation
-  const win = document.querySelector('.macos-window');
+  // ── Floating thumbnails on home page ──────────────────────
+  const container = document.getElementById('floatingProjects');
+  if (container && window.PROJECTS) {
+    window.PROJECTS.forEach((project, i) => {
+      const a = document.createElement('a');
+      a.href = `/works/${project.slug}`;
+      a.className = 'float-item';
+      a.style.left = project.posX + '%';
+      a.style.top  = project.posY + '%';
+      a.style.animationDelay = (i * 0.08) + 's';
+
+      const img = document.createElement('img');
+      img.src = project.thumb;
+      img.alt = project.title;
+      img.className = 'float-thumb';
+      img.loading = 'lazy';
+
+      const label = document.createElement('span');
+      label.className = 'float-label';
+      label.textContent = project.title;
+
+      a.appendChild(img);
+      a.appendChild(label);
+      container.appendChild(a);
+    });
+  }
+
+  // ── Dock magnification effect ──────────────────────────────
+  const dockItems = document.querySelectorAll('.dock-item');
+  dockItems.forEach(item => {
+    item.addEventListener('mouseenter', () => {
+      const siblings = [...dockItems];
+      const idx = siblings.indexOf(item);
+      siblings.forEach((el, i) => {
+        const dist = Math.abs(i - idx);
+        const scale = dist === 0 ? 1.22 : dist === 1 ? 1.1 : 1;
+        const lift  = dist === 0 ? -10  : dist === 1 ? -4  : 0;
+        el.style.transform = `translateY(${lift}px) scale(${scale})`;
+        el.style.transition = 'transform 0.18s ease';
+      });
+    });
+  });
+
+  document.querySelector('.dock-inner')?.addEventListener('mouseleave', () => {
+    dockItems.forEach(el => {
+      el.style.transform = '';
+    });
+  });
+
+  // ── Window entrance on detail page ────────────────────────
+  const win = document.getElementById('detailWindow');
   if (win) {
     win.style.opacity = '0';
-    win.style.transform = 'translateY(16px) scale(0.98)';
-    win.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        win.style.opacity = '1';
-        win.style.transform = 'translateY(0) scale(1)';
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      win.style.opacity = '1';
+    }));
+  }
+
+  // ── Floating items subtle parallax on mouse move ──────────
+  const floatItems = document.querySelectorAll('.float-item');
+  if (floatItems.length) {
+    document.addEventListener('mousemove', e => {
+      const cx = window.innerWidth / 2;
+      const cy = window.innerHeight / 2;
+      const dx = (e.clientX - cx) / cx;
+      const dy = (e.clientY - cy) / cy;
+
+      floatItems.forEach((el, i) => {
+        const depth = 0.4 + (i % 3) * 0.2;
+        const mx = dx * 10 * depth;
+        const my = dy * 10 * depth;
+        el.style.marginLeft = mx + 'px';
+        el.style.marginTop  = my + 'px';
       });
     });
   }
-
-  // Smooth scroll for anchor nav links
-  document.querySelectorAll('a[href^="#"]').forEach(link => {
-    link.addEventListener('click', e => {
-      const target = document.querySelector(link.getAttribute('href'));
-      if (target) {
-        e.preventDefault();
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    });
-  });
-
-  // Work card staggered entrance
-  const cards = document.querySelectorAll('.work-card');
-  if (cards.length && 'IntersectionObserver' in window) {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry, i) => {
-        if (entry.isIntersecting) {
-          setTimeout(() => {
-            entry.target.style.opacity = '1';
-            entry.target.style.transform = 'translateY(0)';
-          }, i * 60);
-          observer.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.1 });
-
-    cards.forEach(card => {
-      card.style.opacity = '0';
-      card.style.transform = 'translateY(12px)';
-      card.style.transition = 'opacity 0.35s ease, transform 0.35s ease, box-shadow 0.2s ease';
-      observer.observe(card);
-    });
-  }
-
-  // Carousel drag-to-scroll
-  const carousel = document.querySelector('.works-carousel');
-  if (carousel) {
-    let isDown = false, startX, scrollLeft;
-    carousel.addEventListener('mousedown', e => {
-      isDown = true;
-      carousel.style.cursor = 'grabbing';
-      startX = e.pageX - carousel.offsetLeft;
-      scrollLeft = carousel.scrollLeft;
-    });
-    carousel.addEventListener('mouseleave', () => { isDown = false; carousel.style.cursor = ''; });
-    carousel.addEventListener('mouseup', () => { isDown = false; carousel.style.cursor = ''; });
-    carousel.addEventListener('mousemove', e => {
-      if (!isDown) return;
-      e.preventDefault();
-      const x = e.pageX - carousel.offsetLeft;
-      carousel.scrollLeft = scrollLeft - (x - startX) * 1.5;
-    });
-  }
-
-  // Traffic light dot hover labels
-  const dots = [
-    { el: document.querySelector('.dot-red'), label: 'Close' },
-    { el: document.querySelector('.dot-yellow'), label: 'Minimize' },
-    { el: document.querySelector('.dot-green'), label: 'Fullscreen' },
-  ];
-  dots.forEach(({ el, label }) => {
-    if (!el) return;
-    el.setAttribute('title', label);
-  });
 
 });
